@@ -3,6 +3,6 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://joSecret.github.io',
+  site: 'https://josecret.github.io/',
   base: '/bots',
 });
