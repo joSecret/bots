@@ -29,6 +29,23 @@ const initials = group.name
   .join("")
   .toUpperCase();
 
+const baseUrl = import.meta.env.BASE_URL;
+
+function resolveAvatarSrc(avatar: string | null): string | null {
+  if (!avatar) return null;
+
+  // Keep external URLs untouched.
+  if (/^https?:\/\//i.test(avatar)) return avatar;
+
+  // Convert absolute project paths (e.g. /avatars/x.jpg) to BASE_URL-aware paths.
+  const normalizedBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  const normalizedAvatar = avatar.startsWith("/") ? avatar.slice(1) : avatar;
+
+  return `${normalizedBase}/${normalizedAvatar}`;
+}
+
+const avatarSrc = resolveAvatarSrc(group.avatar);
+
 function formatMembers(n: number | null): string {
   if (!n) return "—";
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".0", "")}k`;
@@ -45,8 +62,8 @@ function formatMembers(n: number | null): string {
 >
   <div class="avatar">
     {
-      group.avatar ? (
-        <img src={group.avatar} alt={group.name} loading="lazy" />
+      avatarSrc ? (
+        <img src={avatarSrc} alt={group.name} loading="lazy" />
       ) : (
         <span class="avatar-fallback">{initials}</span>
       )
