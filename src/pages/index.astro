@@ -1,0 +1,155 @@
+---
+// src/pages/index.astro
+// Pagina principală: randează toate grupurile/canalele, cu filtrare simplă pe platformă și tip.
+
+import GroupCard from "../components/GroupCard.astro";
+import groupsData from "../data/telegram_groups_moldova.json";
+
+// Dacă mai târziu adaugi și fișiere JSON pentru Facebook/Instagram,
+// le imporți la fel și le combini într-un singur array:
+// import fbGroups from "../data/facebook_groups_moldova.json";
+// const allGroups = [...groupsData, ...fbGroups];
+
+const allGroups = groupsData;
+
+// Excludem entitățile marcate scam/fake, dacă există
+const groups = allGroups.filter((g) => !g.scam && !g.fake);
+
+// Statistici rapide pentru header
+const totalMembers = groups.reduce((sum, g) => sum + (g.members ?? 0), 0);
+const platforms = [...new Set(groups.map((g) => g.platform))];
+---
+
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grupuri & Canale din Moldova</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Grupuri & Canale din Moldova</h1>
+        <p class="stats">
+          {groups.length} comunități · {totalMembers.toLocaleString("ro-RO")} membri în total
+        </p>
+      </header>
+
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">Toate</button>
+        {
+          platforms.map((p) => (
+            <button class="filter-btn" data-filter={p}>
+              {p}
+            </button>
+          ))
+        }
+        <button class="filter-btn" data-filter="channel">Canale</button>
+        <button class="filter-btn" data-filter="group">Grupuri</button>
+      </div>
+
+      <div class="grid" id="groups-grid">
+        {
+          groups.map((group) => (
+            <div class="grid-item" data-platform={group.platform} data-type={group.type}>
+              <GroupCard group={group} />
+            </div>
+          ))
+        }
+      </div>
+    </main>
+
+    <script>
+      // Filtrare simplă client-side, fără framework
+      const buttons = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+      const items = document.querySelectorAll<HTMLDivElement>(".grid-item");
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          buttons.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          const filter = btn.dataset.filter;
+
+          items.forEach((item) => {
+            if (
+              filter === "all" ||
+              item.dataset.platform === filter ||
+              item.dataset.type === filter
+            ) {
+              item.style.display = "";
+            } else {
+              item.style.display = "none";
+            }
+          });
+        });
+      });
+    </script>
+
+    <style is:global>
+      :root {
+        --accent: #4a9eff;
+        --card-bg: #16181c;
+        --card-border: #2a2d33;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #0d0e10;
+        color: #e4e6eb;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem;
+      }
+
+      header h1 {
+        margin: 0 0 0.4rem;
+        font-size: 1.8rem;
+      }
+
+      .stats {
+        margin: 0 0 1.5rem;
+        color: #8a8f98;
+        font-size: 0.9rem;
+      }
+
+      .filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+
+      .filter-btn {
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid var(--card-border);
+        background: transparent;
+        color: #b4b8c0;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-transform: capitalize;
+      }
+
+      .filter-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+    </style>
+  </body>
+</html>
